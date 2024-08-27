@@ -1,0 +1,16 @@
+{
+  "name": "xTSinkConnector",
+  "config": {
+    "connector.class": "com.xware.xt2kafka.sink.kafka.XtSinkConnector",
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "topic": "XTSINK.DEMO",
+    "xt.config": "C:/xTSamples/GrpcSamplesettings.json",
+    "xt.contract": "GrpcJavaContract",
+    "xt.password" : "",
+    "xt.uri": "",
+    "xt.connip": "localhost",
+    "xt.connport": "61001",
+    "xt.ca": "-----BEGIN CERTIFICATE-----\\nMIIETjCCAragAwIBAgIJAI490dC9O+u0MA0GCSqGSIb3DQEBCwUAMA0xCzAJBgNV\\nBAYTAkJFMCAXDTI0MDcyNjExNTUzMFoYDzIwMjcwNzI2MDAwMDAwWjANMQswCQYD\\nVQQGEwJCRTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAPW7gtBZi4yK\\nkyncl1kmGj7EagB6CuAx5QrEWwoFFuTUA8i2a1kUqXTlh0+KWXF4zbupin4kfRp/\\nUXkNQUA/RcOq8VROeieBeZOfNkkcG4h2CvcScWJPxLF0ZAQvpHc/vQf6KR8Tdb8s\\n+fndLrF4D1Oz0tREdyiXUcqczEkqJyCv+CbfTXpy64WXbQaXbCZu7PFyWd+wWHv+\\nDBT6aTi9WXntCXKL9Dy3ulC3vZiwabehX53YnJemS+NhFc95QiTnR5avFH8+IJ4k\\nKKpiZ/RVcb9hcX50ofuc4uCzffEr7LThi34Fy7FsvfdSzHPTGQ6cCpBk6m7k5+Ya\\nwsVmar1QWlLdgGYDkonLmBulB2GajqGL3di+HiLyu9rjUuMIB+u20umBso+jCLGy\\nQEb4/kZh68JkyCiUnYYK9Bg9a7KF+lnp/SJc+d3Y54iCKvBZxaWsipXulHIPQvvr\\nk8EXtQHK/BgWqX8ZC+XyEJcjsbSGxJBAt6Q13gj5PtgeFySlprtbcwIDAQABo4Gu\\nMIGrMAwGA1UdEwEB/wQCMAAwDgYDVR0PAQH/BAQDAgKkMB0GA1UdJQQWMBQGCCsG\\nAQUFBwMCBggrBgEFBQcDATAsBgNVHREEJTAjhwR/AAABhxAAAAAAAAAAAAAAAAAA\\nAAABgglsb2NhbGhvc3QwHQYDVR0OBBYEFCCYi5fDcxRU5h2qbSkX+LFEo+xLMB8G\\nA1UdIwQYMBaAFCCYi5fDcxRU5h2qbSkX+LFEo+xLMA0GCSqGSIb3DQEBCwUAA4IB\\ngQCUteW7kd0SjCp1icHQLgi2+eOT93rI0t7/B75u7FM8N1Exd4E8nlvsKK/L85Lm\\n+Oty5ZSR8cHaMenOziXTICTTuRzmf4YmWWhkOm5Ws/tKsMrqQTw2dnm1j5vql9WN\\n7js4arMMPkqASLFAxqV7yQjaR94tV2PnGQrUmWN6baOmwskc8rUACvrppgpPuxvj\\nwceQrRltUdkCK/pd6EoB5hCxunMMHIcVVHg5D9LY2MYdz6A202fvSAtPMLP+WU/Y\\n4UwhFirmA4jlBZJlqIdrx/DaJpV+8qVxcNfCusbH5kxqarNr2TOX/0MPSepd6aB4\\nnMtCZEkCVM3LiFk9SmwbsoOC1mCLVkztb0/d47SsfMxhk6Hj1PqEpUVS6Yxjx2n5\\nVLQqQ5NNjblUG5YZB8bWWY3EWxTPge7/codQ/Q7xSkrpEy6Oas02L6PLBZbH8muR\\nVzw+d8poBuEQckk3h8cbpHI6zqpYPRJ4h+5TmXpYm81gm4CV1ywQWxMdSF2GjEqc\\n4e4=\\n-----END CERTIFICATE-----\\n",
+    "tasks.max": "1"
+  }
+}

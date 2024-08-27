@@ -1,0 +1,542 @@
+  
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "xware.xt.grpc.application";
+
+package xtappapi;
+option csharp_namespace = "Xware.Xt.Grpc.Application";
+
+import "google/protobuf/empty.proto";
+
+// The xTrade Application Message interface
+service Msg {  
+  
+  // Establish a session with the server. The session ticket returned by this method should be used in all subsequent calls
+  rpc LogOn(LogOnMessage) returns (LogOnReply) {}
+
+  // End a session
+  rpc LogOff(LogOffMessage) returns (LogOffReply) {}
+
+  // Report session status
+  rpc SessionSetStatus(SessionSetStatusMessage) returns (SessionSetStatusReply) {}
+
+  // Returns the application object properties
+  rpc GetApplicationProperties(GetApplicationPropertiesMessage) returns (GetApplicationPropertiesReply) {}
+
+  // Returns properties for a configuration object
+  rpc GetConfigurationProperties(GetConfigurationPropertiesMessage) returns (GetConfigurationPropertiesReply) {}
+
+  // Returns properties for a configuration object
+  rpc GetConfigurationPropertiesEx(GetConfigurationPropertiesExMessage) returns (stream GetConfigurationPropertiesExReply) {}
+
+  // Returns a document associated with the application object
+  rpc GetDocument(GetDocumentMessage) returns (stream ByteChunk) {}
+
+  // Starts a transaction. Messages submitted in a transaction are committed or rolled back
+  // using the EndTransaction method
+  rpc StartTransaction(StartTransactionMessage) returns (StartTransactionReply) {}
+
+  // Aborts or commits a transaction started using the StartTransaction method
+  rpc EndTransaction(EndTransactionMessage) returns (EndTransactionReply) {}
+
+  // Writes message data prior to a SubmitMsg call
+  rpc WriteMsgDataStream(stream ByteChunk) returns (WriteMsgDataStreamReply) {}
+
+  // Gets ids of messages matching the specified attributes
+  rpc GetMsg(GetMsgMessage) returns (GetMsgReply) {}
+
+  // Identify a Node from external data
+  rpc IdentifyNode(IdentifyNodeMessage) returns (IdentifyNodeReply) {}
+
+  // Submit new message(s)
+  rpc SubmitMsg(SubmitMsgMessage) returns (SubmitMsgReply) {}
+
+  // Wait for messages
+  rpc WaitMsg(WaitMsgMessage) returns (WaitMsgReply) {}
+
+  // Gets attributes for a message
+  rpc GetMsgAttributes(GetMsgAttributesMessage) returns (GetMsgAttributesReply) {}
+
+  // Gets attributes for a list of messages
+  rpc GetMsgAttributesList(GetMsgAttributesListMessage) returns (stream GetMsgAttributesReply) {}
+
+  // Gets the event log for a message
+  rpc GetMsgEvents(GetMsgEventsMessage) returns (GetMsgEventsReply) {}
+
+  // Read the message data
+  rpc GetMsgData(GetMsgDataMessage) returns (stream ResultByteChunk) {}
+
+  // Change the state of a message 
+  rpc MsgSetStatus(MsgSetStatusMessage) returns (MsgSetStatusReply) {}
+
+  // Perform an action on a list of messages
+  rpc MsgAction(MsgActionMessage) returns (MsgActionReply) {}
+
+  // Waits for message notifications
+  rpc WaitMsgNotification(WaitMsgNotificationMessage) returns (stream MsgNotificationMessage) {}
+
+  // Enter a syslog
+  rpc Syslog(SyslogMessage) returns (google.protobuf.Empty) {}
+
+};	
+
+
+message LogOnMessage {
+  string application = 1;
+  string password    = 2;
+  map<string, string> options = 3; 
+  string apikey      = 4;
+};
+
+message LogOnReply {
+  string ticket    = 1; // The ticket is used to identify the session in all other methods by setting the metadata meta_key to the ticket value.
+  string meta_key  = 2;
+  string sessionid = 3; // Server session id
+};
+
+message LogOffMessage {
+  google.protobuf.Empty empty = 1;
+};
+
+message LogOffReply {
+  google.protobuf.Empty empty = 1;
+};
+
+
+message SessionSetStatusMessage {
+  map<string, string> properties = 1;
+};
+
+message SessionSetStatusReply {
+  google.protobuf.Empty empty = 1;
+};
+
+
+message GetApplicationPropertiesMessage {
+  google.protobuf.Empty empty = 1;
+};
+
+message GetApplicationPropertiesReply {
+  map<string, string> properties = 1;
+  repeated string     docnames   = 2;
+};
+
+message GetConfigurationPropertiesMessage {
+  string          objuri = 1;
+};
+
+message GetConfigurationPropertiesReply {
+  string            objuri     = 1;
+  string            properties = 2;
+  repeated string   docnames   = 3;
+};
+
+message GetConfigurationPropertiesExMessage {
+  repeated   string   objuri    = 1;
+  bool                recursive = 2;
+};
+
+message GetConfigurationPropertiesExReply {
+  string            objuri     = 1; // Object URI
+  string            requesturi = 2; // The request URI, used to lookup this object
+  string            properties = 3; // Properties for this object
+  repeated string   docnames   = 4; // Documents on this object
+  int32             errorcode  = 5; // Error code; 0 on success.
+  repeated string   childuri   = 6; // First level child URIs
+};
+
+message GetDocumentMessage {
+  string docname = 1; // Document name
+  string objuri  = 2; // Object uri. Empty for the current Application.
+};
+
+message GetMsgMessage {
+  MsgState state  = 1;
+  string contract = 2;
+  string toobj    = 3;
+  string fromobj  = 4;
+};
+
+message GetMsgReply {
+  int32 errorcode       = 1;
+  repeated MsgIdObj ids = 2;
+};
+
+message StartTransactionMessage {
+  int32 transid = 1;
+}
+
+message StartTransactionReply {
+  google.protobuf.Empty empty = 1;
+}
+
+message EndTransactionMessage {
+  bool  commit  = 1;
+  int32 transid = 2;
+}
+
+message EndTransactionReply {
+  int32 errorcode = 1;
+  repeated MsgIdUri ids = 2;
+}
+
+message WriteMsgDataStreamReply {
+  string ref = 1;
+};
+
+enum MsgType {
+  UNKNOWN  = 0;
+  NORMAL   = 1;
+  TEST     = 2;
+  REPLY    = 4;
+  NACK     = 5;
+};
+
+// Message state constants
+enum MsgState {
+  ST_UNDEF        = 0;
+  ST_END          = 0x03ff; // Finished
+  ST_TO_NODE      = 0x0401; // To Node
+  ST_TO_APP       = 0x0402; // To Application
+  ST_PROC         = 0x0403; // To Processing
+  ST_TO_CONTRACT  = 0x0404; // To Contract
+  ST_TO_BUFFER    = 0x0405; // To Buffer
+  ST_TO_ROUTER    = 0x0406; // To Routing
+  ST_TO_WF        = 0x0407; // To Workflow
+  ST_WAIT_ACK     = 0x0408; // Waiting for Ack
+  ST_TRANSMISSION = 0x0409; // Transmission
+  ST_RETURN_ACK   = 0x040a; // Returning Ack
+  ST_WAIT_REPLY   = 0x040b; // Waiting for Reply
+  ST_RETURN_REPLY = 0x040c; // Returning Reply
+  ST_TEMP_STORED  = 0x040d; // Temporary Stored
+  ST_SWITCH_OWNER = 0x0801; // Internal Transfer
+
+  ST_ERR_PROC     = 0x1403; // Processing Error
+  ST_ERR_NACK     = 0x1402; // Not accepted by Receiver
+  ST_ERR_OUT      = 0x1401; // Out-Port Transmission Error
+  ST_ERR_ROUTING  = 0x1406; // Routing Error
+  ST_ERR_CONFIG   = 0x1407; // Configuration Error
+  ST_ERR_ACKTIMEOUT = 0x1408; // Ack Timeout
+  ST_ERR_RETURN_ACK = 0x1409; // Ack Sending Error
+  ST_ERR_RETURN_REPLY = 0x140a; // Returning Reply Error 
+};
+
+
+// Standard parsing field ids
+enum StdParserFieldId {
+  PF_UNKNOWN     = 0;
+  PF_TYPE        = 1;
+  PF_SENDER      = 2;
+  PF_RECEIVER    = 3;
+  PF_FORMATNAME  = 4;
+  PF_TESTFLAG    = 5;
+  PF_SEQNO       = 6;
+  PF_DELIMITER   = 7;
+  PF_TIMESTRING  = 8;
+  PF_CORRELATIONID = 9;
+  PF_ENCODING    = 10;
+};
+
+// Error codes 
+enum ErrorCode {
+ ERR_OK          =0;   // No Error
+ ERR_INVALID     =1;   // Object has invalid state
+ ERR_NOTFOUND    =2;   // Object not found
+ ERR_CONFLICT    =3;   // Database conflict
+ ERR_REFERENCED  =4;   // Object is still referenced by other objects
+ ERR_REFNOTFOUND =5;   // Referenced object(s) does not exist 
+ ERR_INTERNAL    =6;   // Internal unexpected error
+ ERR_WRONGTYPE   =7;   // The operation is not supported by this type 
+ ERR_SYSTEM      =8;   // Generic system error
+ ERR_CONTRACT    =9;   // Generic contract error
+ ERR_APPLICATION =10;  // Application error
+ ERR_OUTPORT     =11;  // Destination error
+ ERR_SEQ         =12;  // The sequence is locked or contains errors
+ ERR_STATE       =13;  // Msg has wrong state
+ ERR_PLOCK       =14;  // The processing lock is set
+ ERR_DUPMSG      =15;  // The message is already added 
+ ERR_SEQFILLED   =16;  // Sequence error is unlocked
+ ERR_BADSESSION  =17;  // Invalid session
+ ERR_SEQASSIGNED =18;  // The message is assigned to a sequence
+ ERR_SEQNOTLAST  =19;  // The message is not last in the sequence
+ ERR_NOTOWNER    =21;  // The message is not owned by this system
+ ERR_BADFILE     =22;  // Invalid file parameter
+ ERR_BADPARAM    =23;  // Bad parameter in call
+ ERR_NOPERMISSION  =24;// Permission denied
+ ERR_MSGPARSE    =25;  // Error parsing message
+ ERR_MSGROUTE    =26;  // Error routing message
+ ERR_ORG         =27;  // Party/Organization error
+ ERR_CONFIG      =28;  // Configuration error
+ ERR_RECURSION   =29;  // Recursion error
+ ERR_HEADER      =30;  // Header error
+ ERR_EXTPOSTPARSE =31; // External post parsing error
+ ERR_EXTPREPARSE =32;  // External pre parsing error
+
+ ERR_UNKHEADER   =34;  // Unknown header
+ ERR_TIMEOUT     =35;  // Timeout
+ ERR_MSGTYPE     =36;  // Bad or unknown Message type
+ ERR_NOTIMPL     =50;  // Not implemented
+
+};
+
+
+
+message IdentifyNodeMessage {
+  map<string, bytes> data      = 1;
+};
+
+
+message IdentifyNodeReply {
+  repeated string node_uri    = 1;
+};
+
+
+message SubmitMsgMessage {
+  string contract     = 1; // Contract shortname or uri. Empty for routing
+  string toobj        = 2; // External addessing uri
+  int32  transid      = 3; // Transaction id
+  MsgType type        = 5; // Message type
+  string dataref      = 6; // Reference from WriteMsgDataStream
+  MsgIdUri msgref     = 7; // Message reference for replies
+  int32  refoptions   = 8; // Message reference options
+  map<string, string> msgattr           = 9;   // Message attributes
+  map<int32, string>  parserattr        = 10;  // Standard parsing fields for routing
+  map<string, string> custom_parserattr = 11;  // Custom parsing attributes
+  string fromobj                        = 12;  // External identifed Node (Used if this Application is acting as transport for a Node)                   
+  map<string, string> correlationinfo   = 13;  // Correlation info
+};
+
+enum MsgFlags {
+  FLAG_NONE      = 0;
+  FLAG_SYNCREPLY = 1;
+};
+
+message SubmitMsgReply {
+  int32    errorcode    = 1;
+  MsgFlags msgflags     = 2;        
+  repeated MsgIdUri ids = 3;
+};
+
+// What messages to wait for
+enum WaitMsgSpec {
+  WAIT_DEFAULT        = 0; // Default (WAIT_APP_ALL/NORMAL depending on if refids are specified) 
+  WAIT_APP_SYNC       = 0x11; // Sync replies for return 
+  WAIT_APP_NORMAL     = 0x12; // Messages and async replies sent to the Application
+  WAIT_APP_ACK        = 0x14; // Acknowledgements to the Application
+  WAIT_APP_ALL        = 0x17; // All types of application messages
+  
+  WAIT_NODE_SYNC      = 0x21;  // Messages to a Node where the Application is set as the Transport
+  WAIT_NODE_NORMAL    = 0x22;  // Node messages and async replies
+  WAIT_NODE_ACK       = 0x24;  // Node acknowledgements
+  WAIT_NODE_ALL       = 0x27;  // All types of Node-transport messages
+
+};
+
+message WaitMsgMessage {
+  int32              timeout = 1;   // Timeout in ms
+  WaitMsgSpec        types   = 2;   // Type of messages 
+  repeated MsgIdUri  refids  = 3;   // Message references 
+};
+
+message WaitMsgReply {
+  int32 errorcode       = 1;
+  repeated MsgIdObj ids = 2;
+};
+
+message GetMsgAttributesMessage {
+  MsgIdUri id = 1;
+  map<string, string> macro    = 2;         // Macro
+};
+
+message GetMsgAttributesListMessage {
+  repeated MsgIdUri ids = 1;
+  map<string, string> macro    = 2;         // Macro
+};
+
+
+message GetMsgAttributesReply {
+  MsgIdUri id = 1;
+  int32 errorcode = 2;
+  map<string, string> msgattr        = 3;   // Message attributes
+  map<string, string> parserattr_in  = 4;   // In-Parsing attributes 
+  map<string, string> parserattr_out = 5;   // Out-Parsing attributed
+  map<string, string> macro		       = 6;   // Macro
+
+};
+
+message GetMsgEventsMessage {
+  MsgIdUri id = 1;
+};
+
+message GetMsgEventsReply {
+  MsgIdUri id              = 1;
+  int32    errorcode       = 2;
+  repeated MsgEvent events = 3;
+};
+
+message GetMsgDataMessage {
+  MsgIdUri id = 1;
+};
+
+enum MsgStatusCommand
+{
+  STATUS_NONE              = 0; // No status update
+  STATUS_OK                = 1; // Success
+  STATUS_FAILED            = 2; // Failure
+  STATUS_FAILED_NO_RETRANS = 3; // Failure, disable retransmission
+  STATUS_TRANSPORT_ERROR   = 4; // Transport level error
+};
+
+
+message MsgSetStatusMessage {
+  MsgIdUri id                         = 1;
+  MsgStatusCommand cmd                = 2;
+  map<string, string> msgattr         = 4; // Message attributes
+  map<string, string> correlationinfo = 5; // Correlation information
+  string   loginfo                    = 3;
+};
+
+message MsgSetStatusReply {
+  int32    errorcode     = 1;
+  bool     do_ack        = 2; // An ackowlegement is expected
+  bool     do_reply      = 3; // A reply message is expected
+  bool     syncreply     = 4; // The reply mode is sync
+  MsgState state         = 5; // The current message state
+};
+
+message MsgActionReply {
+  repeated MsgActionResult result = 1;
+};
+
+enum MsgOperation
+{
+  OP_NONE        = 0;
+  OP_ACK         = 1;
+  OP_NACK       = 21; 
+  OP_RETRY       = 2;
+  OP_END         = 3;
+};
+
+message MsgActionMessage {
+  MsgOperation      operation = 1;
+  string            param     = 2;
+  repeated MsgIdUri ids       = 3;
+};
+
+message MsgActionResult {
+  MsgIdUri id      = 1;
+  int32 errorcode  = 2;
+};
+
+message WaitMsgNotificationMessage {
+  int32 timeout = 1;       // Timeout in ms. 0 = infinite (system max value)
+  repeated string contract_filter = 2;
+};
+
+
+
+enum MsgNotification {
+  NOT_NONE       = 0;
+  NOT_NEWSTATE   = 1;
+  NOT_ERRORSTATE = 2;
+  NOT_ACKUPDATE  = 3;
+};
+
+
+message MsgNotificationMessage {
+  MsgNotification notification = 1;
+  MsgType type =     2;
+  MsgIdUri id =      3;
+  MsgState state =   4;
+  string contract =  5;
+  string toobj =     6;
+  string fromobj =   7;
+  
+  int32  acklevel         = 8;  // Set on NOT_ACKUPDATE notificatons
+  int32  current_acklevel = 9;  // Set on NOT_ACKUPDATE notificatons
+};
+
+enum SyslogAttachmentType
+{
+  ATTACHMENT_TEXT        = 0;
+  ATTACHMENT_CERTIFICATE = 1;
+  ATTACHMENT_SSH         = 2;
+  ATTACHMENT_BINARY      = 3;
+};
+
+enum SyslogLevel
+{
+    LEVEL_DEFAULT     = 0;
+    LEVEL_DEBUG       = 1;
+    LEVEL_INFORMATION = 2;
+    LEVEL_NOTIFY      = 3;
+    LEVEL_WARNING     = 4;
+    LEVEL_ERROR       = 5;
+    LEVEL_CRITICAL    = 6;
+};
+
+message SyslogAttachment {
+  string                    name = 1;
+  SyslogAttachmentType      type = 2;
+  oneof body {
+    bytes                   chunk = 3;
+    string                  text  = 4;
+  }
+}
+
+message SyslogTagValue {
+  oneof tag {
+    int64                  number = 1;
+    string                 text   = 2;
+  }
+}
+
+message SyslogMessage {
+  SyslogLevel                  level        = 1; // Level of log request
+  string                       text         = 2; // Text message of the log
+  string                       module       = 3; // Module Name
+  map<string, SyslogTagValue>  tags         = 4; // Log tags
+  repeated MsgIdUri            msg          = 5; // Message ID Uri, if the syslog should reference a message
+  repeated string              objuri       = 6; // URIs of referenced Configuration objects
+  repeated SyslogAttachment    attachments  = 7; // Attachments
+}
+
+// ***************** Basic types ********************
+
+message  MsgIdUri {
+  uint64 msgid    = 1; // Message numeric id
+  string uri      = 2; // Message uri
+};
+
+message  MsgIdObj {
+  MsgIdUri id     = 1; // Message id
+  string   objuri = 2; // Object uri 
+};
+
+
+/*
+message MsgIdUriList {
+  repeated MsgIdUri ids = 1;
+};
+*/
+
+message MsgIdList {
+  repeated uint64 msgids = 1;
+};
+
+message MsgEvent {
+  map<string, string> eventattrs   = 1;
+  repeated string refobjs          = 2;
+};
+
+message ByteChunk {
+    bytes chunk = 1;
+};
+
+message ResultByteChunk {
+    int32 errorcode = 1;
+    bytes chunk = 2;
+};
+
+
